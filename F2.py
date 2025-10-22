@@ -43,12 +43,12 @@ CONFIG = {
    'search_timeout': 0,
    'max_sources': 10000,
    'response_quality': 'high',
-   'min_sim_threshold': 1,
-   'min_relevance_threshold': 1,
+   'min_sim_threshold': 0.5,  # Lower threshold for sentence similarity
+   'min_relevance_threshold': 1, 
 }
 
 
-TOKEN = "INSERT_BOT_TOKEN"
+TOKEN = "TOKEN"
 INTENTS = discord.Intents.default()
 INTENTS.message_content = True
 INTENTS.guilds = True
@@ -207,17 +207,24 @@ class AdvancedWebCrawler:
        if not sources:
            return
        docs, metas, ids = [], [], []
+       seen_ids = set()
+       
        for s in sources:
            if s.get('content'):
-               docs.append(s['content'])
-               metas.append({'source': s['source'], 'url': s['url'], 'quality_score': s['quality_score']})
-               ids.append(hashlib.md5(s['content'].encode()).hexdigest())
-               self._extract_knowledge(s['content'], s['url'])
-       try:
-           embeddings = EMBEDDING_MODEL.encode(docs).tolist()
-           MEMORY.knowledge_base.add(documents=docs, embeddings=embeddings, metadatas=metas, ids=ids)
-       except Exception as e:
-           print(f"ChromaDB add failed: {e}")
+               doc_id = hashlib.md5(s['content'].encode()).hexdigest()
+               if doc_id not in seen_ids:
+                   docs.append(s['content'])
+                   metas.append({'source': s['source'], 'url': s['url'], 'quality_score': s['quality_score']})
+                   ids.append(doc_id)
+                   seen_ids.add(doc_id)
+                   self._extract_knowledge(s['content'], s['url'])
+       
+       if docs:  # Only proceed if we have unique documents to add
+           try:
+               embeddings = EMBEDDING_MODEL.encode(docs).tolist()
+               MEMORY.knowledge_base.add(documents=docs, embeddings=embeddings, metadatas=metas, ids=ids)
+           except Exception as e:
+               print(f"ChromaDB add failed: {e}")
 
 
    def _deduplicate_sources(self, sources):
