@@ -41,14 +41,14 @@ load_dotenv()
 CONFIG = {
    'max_context_length': 8000,
    'search_timeout': 0,
-   'max_sources': 2000,
+   'max_sources': 10000,
    'response_quality': 'high',
-   'min_sim_threshold': 0.5,
-   'min_relevance_threshold': 1000,
+   'min_sim_threshold': 1,
+   'min_relevance_threshold': 1,
 }
 
 
-TOKEN = "MTQyODE2MTcwMzE3ODI3Mjc3OA.GkXlqA.qgogQb6Y6XUaQAQ6adMrHGMAMGNsUHCUgyfgZY"
+TOKEN = "INSERT_BOT_TOKEN"
 INTENTS = discord.Intents.default()
 INTENTS.message_content = True
 INTENTS.guilds = True
